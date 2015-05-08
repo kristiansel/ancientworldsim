@@ -72,6 +72,7 @@ private:
 
     // CEGUI members
     CEGUI::OgreRenderer* mRenderer;
+    bool mShutdown;
 };
 
 //---------------------------------------------------------------------------

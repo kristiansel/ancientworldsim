@@ -11,11 +11,24 @@ Filename:    engine.cpp
 #include <OgreConfigFile.h>
 #include <OgreViewport.h>
 #include <OgreEntity.h>
+
+#include <iostream>
+
+
 //-------------------------------------------------------------------------------------
 Engine::Engine()
-    : mRoot(0),
+    : mRoot(nullptr),
       mResourcesCfg(Ogre::StringUtil::BLANK),
-      mPluginsCfg(Ogre::StringUtil::BLANK)
+      mPluginsCfg(Ogre::StringUtil::BLANK),
+      mWindow(nullptr),
+      mSceneMgr(nullptr),
+      mCamera(nullptr),
+      mInputManager(nullptr),
+      mMouse(nullptr),
+      mKeyboard(nullptr),
+      mRenderer(nullptr),
+      mShutdown(false)
+
 {
 }
 //-------------------------------------------------------------------------------------
@@ -105,6 +118,13 @@ bool Engine::go()
     CEGUI::Window *sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
     CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(sheet);
 
+    CEGUI::Window *quit = wmgr.createWindow("TaharezLook/Button", "CEGUIDemo/QuitButton");
+    quit->setText("Quit");
+    quit->setSize(CEGUI::USize(CEGUI::UDim(0.15, 0), CEGUI::UDim(0.05, 0)));
+    sheet->addChild(quit);
+
+    quit->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&Engine::quit, this));
+
     // Initialize and add an entity
     Ogre::Entity* ogreEntity = mSceneMgr->createEntity("ogrehead.mesh");
 
@@ -140,6 +160,8 @@ bool Engine::go()
 
     //Register this object as a Frame Listener
     mRoot->addFrameListener(this);
+
+    std::cout << "starting rendering!!!!!!!!!!!1\n";
 
     //Start rendering
     mRoot->startRendering();
@@ -189,8 +211,13 @@ bool Engine::frameRenderingQueued(const Ogre::FrameEvent& evt)
     if(mKeyboard->isKeyDown(OIS::KC_ESCAPE))
         return false;
 
+    if(mShutdown)
+        return false;
+
     //Need to inject timestamps to CEGUI System.
     CEGUI::System::getSingleton().injectTimePulse(evt.timeSinceLastFrame);
+
+    //std::cout << "calling frameRendingQueued\n";
 
     return true;
 }
@@ -218,12 +245,14 @@ bool Engine::keyPressed( const OIS::KeyEvent &arg )
     CEGUI::GUIContext& context = CEGUI::System::getSingleton().getDefaultGUIContext();
     context.injectKeyDown((CEGUI::Key::Scan)arg.key);
     context.injectChar((CEGUI::Key::Scan)arg.text);
+    std::cout << "key pressed\n";
     return true;
 }
 //-------------------------------------------------------------------------------------
 bool Engine::keyReleased( const OIS::KeyEvent &arg )
 {
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp((CEGUI::Key::Scan)arg.key);
+    std::cout << "key released\n";
     return true;
 }
 //-------------------------------------------------------------------------------------
@@ -231,6 +260,9 @@ bool Engine::mouseMoved( const OIS::MouseEvent &arg )
 {
     CEGUI::GUIContext &gui_context = CEGUI::System::getSingleton().getDefaultGUIContext();
     gui_context.injectMouseMove(arg.state.X.rel, arg.state.Y.rel);
+
+    std::cout << "moving mouse " << arg.state.X.rel << "," << arg.state.Y.rel << "\n";
+
     // Scroll wheel.
     if (arg.state.Z.rel)
         gui_context.injectMouseWheelChange(arg.state.Z.rel / 120.0f);
@@ -240,17 +272,20 @@ bool Engine::mouseMoved( const OIS::MouseEvent &arg )
 bool Engine::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(convertButton(id));
+    std::cout << "mouse pressed\n";
     return true;
 }
 //-------------------------------------------------------------------------------------
 bool Engine::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(convertButton(id));
+    std::cout << "mouse released\n";
     return true;
 }
 //-------------------------------------------------------------------------------------
 bool Engine::quit(const CEGUI::EventArgs &e)
 {
+    mShutdown = true;
     return true;
 }
 
