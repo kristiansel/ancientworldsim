@@ -43,19 +43,20 @@ bool Engine::go()
     Ogre::ConfigFile cf;
     cf.load(mResourcesCfg); // config file that points to resource locations
 
-    Ogre::String name, locType;
+    Ogre::String secName, name, locType;
 
     // "Unpack" the config file
     Ogre::ConfigFile::SectionIterator secIt = cf.getSectionIterator(); // the config file is a "vector" of sections
     while (secIt.hasMoreElements())
     {
+        secName = secIt.peekNextKey();
         Ogre::ConfigFile::SettingsMultiMap* settings = secIt.getNext(); // a section like [General]
         Ogre::ConfigFile::SettingsMultiMap::iterator it;
         for (it = settings->begin(); it != settings->end(); ++it)
         {
             locType = it->first; // as in "FileSystem" =
             name = it->second; // as in "path/to/resource/folder"
-            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(name, locType);
+            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(name, locType, secName);
         }
     }
 
@@ -96,6 +97,14 @@ bool Engine::go()
     CEGUI::WidgetLookManager::setDefaultResourceGroup("LookNFeel");
     CEGUI::WindowManager::setDefaultResourceGroup("Layouts");
 
+    CEGUI::SchemeManager::getSingleton().createFromFile("TaharezLook.scheme");
+    CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("TaharezLook/MouseArrow");
+
+
+    CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+    CEGUI::Window *sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
+    CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(sheet);
+
     // Initialize and add an entity
     Ogre::Entity* ogreEntity = mSceneMgr->createEntity("ogrehead.mesh");
 
@@ -120,8 +129,8 @@ bool Engine::go()
 
     mInputManager = OIS::InputManager::createInputSystem( pl );
 
-    mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject( OIS::OISKeyboard, false ));
-    mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject( OIS::OISMouse, false ));
+    mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject( OIS::OISKeyboard, true ));
+    mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject( OIS::OISMouse, true ));
 
     //Set initial mouse clipping size
     windowResized(mWindow);
@@ -180,27 +189,64 @@ bool Engine::frameRenderingQueued(const Ogre::FrameEvent& evt)
     if(mKeyboard->isKeyDown(OIS::KC_ESCAPE))
         return false;
 
+    //Need to inject timestamps to CEGUI System.
+    CEGUI::System::getSingleton().injectTimePulse(evt.timeSinceLastFrame);
+
     return true;
+}
+//-------------------------------------------------------------------------------------
+CEGUI::MouseButton convertButton(OIS::MouseButtonID buttonID) // convert OIS mouse buttons to CEGUI
+{
+    switch (buttonID)
+    {
+    case OIS::MB_Left:
+        return CEGUI::LeftButton;
+
+    case OIS::MB_Right:
+        return CEGUI::RightButton;
+
+    case OIS::MB_Middle:
+        return CEGUI::MiddleButton;
+
+    default:
+        return CEGUI::LeftButton;
+    }
 }
 //-------------------------------------------------------------------------------------
 bool Engine::keyPressed( const OIS::KeyEvent &arg )
 {
+    CEGUI::GUIContext& context = CEGUI::System::getSingleton().getDefaultGUIContext();
+    context.injectKeyDown((CEGUI::Key::Scan)arg.key);
+    context.injectChar((CEGUI::Key::Scan)arg.text);
+    return true;
 }
 //-------------------------------------------------------------------------------------
 bool Engine::keyReleased( const OIS::KeyEvent &arg )
 {
+    CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp((CEGUI::Key::Scan)arg.key);
+    return true;
 }
 //-------------------------------------------------------------------------------------
 bool Engine::mouseMoved( const OIS::MouseEvent &arg )
 {
+    CEGUI::GUIContext &gui_context = CEGUI::System::getSingleton().getDefaultGUIContext();
+    gui_context.injectMouseMove(arg.state.X.rel, arg.state.Y.rel);
+    // Scroll wheel.
+    if (arg.state.Z.rel)
+        gui_context.injectMouseWheelChange(arg.state.Z.rel / 120.0f);
+    return true;
 }
 //-------------------------------------------------------------------------------------
 bool Engine::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
+    CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(convertButton(id));
+    return true;
 }
 //-------------------------------------------------------------------------------------
 bool Engine::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
+    CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(convertButton(id));
+    return true;
 }
 //-------------------------------------------------------------------------------------
 bool Engine::quit(const CEGUI::EventArgs &e)

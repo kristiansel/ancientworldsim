@@ -46,8 +46,15 @@ endif()
 find_package(CEGUI REQUIRED)
 
 if (NOT CEGUI_FOUND)
-        message(SEND_ERROR "Faiøed to find CEGUI.")
+        message(SEND_ERROR "Failed to find CEGUI.")
 endif()
+
+# Find CEGUIOGRE
+# find_package(CEGUIOGRE REQUIRED)
+
+# if(NOT CEGUIOGRE_FOUND)
+#       message(SEND_ERROR "Failed to find CEGUIOGRE.")
+# endif()
  
 # Find Boost
 if (NOT OGRE_BUILD_PLATFORM_IPHONE)
@@ -99,7 +106,9 @@ add_executable(AncientWorldSim WIN32 ${HDRS} ${SRCS})
  
 set_target_properties(AncientWorldSim PROPERTIES DEBUG_POSTFIX _d)
  
-target_link_libraries(AncientWorldSim ${OGRE_LIBRARIES} ${CEGUI_LIBRARIES} ${OIS_LIBRARIES} ${OGRE_Overlay_LIBRARIES} ${OGRE_Terrain_LIBRARIES})
+# MESSAGE( STATUS "CEGUI_OgreRenderer_LIBRARIES:         " ${CEGUI_OgreRenderer_LIBRARIES} )
+
+target_link_libraries(AncientWorldSim ${OGRE_LIBRARIES} ${CEGUI_LIBRARIES} ${CEGUI_OgreRenderer_LIBRARIES} ${OIS_LIBRARIES} ${OGRE_Overlay_LIBRARIES} ${OGRE_Terrain_LIBRARIES})
  
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist/bin)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist/media)
