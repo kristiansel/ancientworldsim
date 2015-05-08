@@ -17,29 +17,8 @@
 cmake_minimum_required(VERSION 2.6)
  
 project(AncientWorldSim)
- 
-if(WIN32)
-	set(CMAKE_MODULE_PATH "$ENV{OGRE_HOME}/CMake/;${CMAKE_MODULE_PATH}")
-	set(OGRE_SAMPLES_INCLUDEPATH
-		$ENV{OGRE_HOME}/Samples/include
-	)
-endif(WIN32)
- 
-if(UNIX)
-	if(EXISTS "/usr/lib/OGRE/cmake")
 
-	  set(CMAKE_MODULE_PATH "/usr/lib/OGRE/cmake/;${CMAKE_MODULE_PATH}")
-	  set(OGRE_SAMPLES_INCLUDEPATH "/usr/share/OGRE/samples/Common/include/") # We could just *assume* that developers uses this basepath : /usr
-
-	elseif(EXISTS "/usr/lib/OGRE/cmake")
-
-	  set(CMAKE_MODULE_PATH "/usr/lib/OGRE/cmake/;${CMAKE_MODULE_PATH}")
-	  set(OGRE_SAMPLES_INCLUDEPATH "/usr/share/OGRE/samples/Common/include/") # Otherwise, this one
-
-	else ()
-	  message(SEND_ERROR "Failed to find module path.")
-	endif(EXISTS "/usr/lib/OGRE")
-endif(UNIX)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
  
 if (CMAKE_BUILD_TYPE STREQUAL "")
   # CMake defaults to leaving CMAKE_BUILD_TYPE empty. This screws up
@@ -61,6 +40,13 @@ find_package(OIS REQUIRED)
  
 if(NOT OIS_FOUND)
 	message(SEND_ERROR "Failed to find OIS.")
+endif()
+
+# Find CEGUI
+find_package(CEGUI REQUIRED)
+
+if (NOT CEGUI_FOUND)
+        message(SEND_ERROR "Faiøed to find CEGUI.")
 endif()
  
 # Find Boost
@@ -95,14 +81,15 @@ if (NOT OGRE_BUILD_PLATFORM_IPHONE)
 endif()
  
 set(HDRS
-	./TutorialApplication.h
+        ./engine.h
 )
  
 set(SRCS
-	./TutorialApplication.cpp
+        ./engine.cpp
 )
  
 include_directories( ${OIS_INCLUDE_DIRS}
+        ${CEGUI_INCLUDE_DIRS}
 	${OGRE_INCLUDE_DIRS}
 	${OGRE_SAMPLES_INCLUDEPATH}
 	${OGRE_Overlay_INCLUDE_DIRS}
@@ -112,7 +99,7 @@ add_executable(AncientWorldSim WIN32 ${HDRS} ${SRCS})
  
 set_target_properties(AncientWorldSim PROPERTIES DEBUG_POSTFIX _d)
  
-target_link_libraries(AncientWorldSim ${OGRE_LIBRARIES} ${OIS_LIBRARIES} ${OGRE_Overlay_LIBRARIES} ${OGRE_Terrain_LIBRARIES})
+target_link_libraries(AncientWorldSim ${OGRE_LIBRARIES} ${CEGUI_LIBRARIES} ${OIS_LIBRARIES} ${OGRE_Overlay_LIBRARIES} ${OGRE_Terrain_LIBRARIES})
  
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist/bin)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist/media)
