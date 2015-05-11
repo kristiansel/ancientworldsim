@@ -16,13 +16,14 @@ Filename:    engine.cpp
 
 
 //-------------------------------------------------------------------------------------
-Engine::Engine()
+AWSim::Engine::Engine()
     : mRoot(nullptr),
       mResourcesCfg(Ogre::StringUtil::BLANK),
       mPluginsCfg(Ogre::StringUtil::BLANK),
       mWindow(nullptr),
       mSceneMgr(nullptr),
       mCamera(nullptr),
+      mPlayerNode(nullptr),
       mInputManager(nullptr),
       mMouse(nullptr),
       mKeyboard(nullptr),
@@ -32,15 +33,15 @@ Engine::Engine()
 {
 }
 //-------------------------------------------------------------------------------------
-Engine::~Engine()
+AWSim::Engine::~Engine()
 {
     //Remove ourself as a Window listener
     Ogre::WindowEventUtilities::removeWindowEventListener(mWindow, this);
     windowClosed(mWindow);
-    delete mRoot;
+    delete mRoot; // assume this cleans up entities and cameras?
 }
 //-------------------------------------------------------------------------------------
-bool Engine::go()
+bool AWSim::Engine::go()
 {
 #ifdef _DEBUG
     mResourcesCfg = "resources_d.cfg";
@@ -85,21 +86,23 @@ bool Engine::go()
     // Initialize and add a scene manager
     mSceneMgr = mRoot->createSceneManager(Ogre::ST_GENERIC);
 
-    // Initialize and add a camera
-    mCamera = mSceneMgr->createCamera("MainCam");
+//    // Initialize and add a camera
+//    mCamera = mSceneMgr->createCamera("MainCam");
 
-    mCamera->setPosition(0, 0, 80);
-    mCamera->lookAt(0, 0, -300);
-    mCamera->setNearClipDistance(5);
+//    mCamera->setPosition(0, 0, 80);
+//    mCamera->lookAt(0, 0, -300);
+//    mCamera->setNearClipDistance(5);
 
-    // Initialize and add a viewport
-    Ogre::Viewport* vp = mWindow->addViewport(mCamera);
+//    // Initialize and add a viewport
+//    Ogre::Viewport* vp = mWindow->addViewport(mCamera);
 
-    vp->setBackgroundColour(Ogre::ColourValue(0,0,0));
+//    vp->setBackgroundColour(Ogre::ColourValue(0,0,0));
 
-    mCamera->setAspectRatio(
-        Ogre::Real(vp->getActualWidth()) /
-        Ogre::Real(vp->getActualHeight()));
+//    mCamera->setAspectRatio(
+//        Ogre::Real(vp->getActualWidth()) /
+//        Ogre::Real(vp->getActualHeight()));
+
+    mCamera = AWGraphics::createCamera(mSceneMgr, mWindow);
 
     // Initialize CEGUI
     mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
@@ -123,13 +126,15 @@ bool Engine::go()
     quit->setSize(CEGUI::USize(CEGUI::UDim(0.15, 0), CEGUI::UDim(0.05, 0)));
     sheet->addChild(quit);
 
-    quit->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&Engine::quit, this));
+    quit->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&AWSim::Engine::quit, this));
 
     // Initialize and add an entity
     Ogre::Entity* ogreEntity = mSceneMgr->createEntity("ogrehead.mesh");
 
     Ogre::SceneNode* ogreNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
     ogreNode->attachObject(ogreEntity);
+
+    mPlayerNode = ogreNode;
 
     // Initialize and add a light
     mSceneMgr->setAmbientLight(Ogre::ColourValue(.5, .5, .5));
@@ -152,6 +157,9 @@ bool Engine::go()
     mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject( OIS::OISKeyboard, true ));
     mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject( OIS::OISMouse, true ));
 
+    mMouse->setEventCallback(this);
+    mKeyboard->setEventCallback(this);
+
     //Set initial mouse clipping size
     windowResized(mWindow);
 
@@ -161,8 +169,6 @@ bool Engine::go()
     //Register this object as a Frame Listener
     mRoot->addFrameListener(this);
 
-    std::cout << "starting rendering!!!!!!!!!!!1\n";
-
     //Start rendering
     mRoot->startRendering();
 
@@ -170,7 +176,7 @@ bool Engine::go()
 }
 //-------------------------------------------------------------------------------------
 //Adjust mouse clipping area
-void Engine::windowResized(Ogre::RenderWindow* rw)
+void AWSim::Engine::windowResized(Ogre::RenderWindow* rw)
 {
     unsigned int width, height, depth;
     int left, top;
@@ -182,9 +188,9 @@ void Engine::windowResized(Ogre::RenderWindow* rw)
 }
 //-------------------------------------------------------------------------------------
 //Unattach OIS before window shutdown (very important under Linux)
-void Engine::windowClosed(Ogre::RenderWindow* rw)
+void AWSim::Engine::windowClosed(Ogre::RenderWindow* rw)
 {
-    //Only close for window that created OIS (the main window in these demos)
+    //Only close for window that created OIS (the main window)
     if(rw == mWindow)
     {
         if(mInputManager)
@@ -195,11 +201,11 @@ void Engine::windowClosed(Ogre::RenderWindow* rw)
             OIS::InputManager::destroyInputSystem(mInputManager);
             mInputManager = 0;
         }
-    } // recompile
+    }
 }
 //-------------------------------------------------------------------------------------
 //Capture input data
-bool Engine::frameRenderingQueued(const Ogre::FrameEvent& evt)
+bool AWSim::Engine::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
     if(mWindow->isClosed())
         return false;
@@ -240,28 +246,25 @@ CEGUI::MouseButton convertButton(OIS::MouseButtonID buttonID) // convert OIS mou
     }
 }
 //-------------------------------------------------------------------------------------
-bool Engine::keyPressed( const OIS::KeyEvent &arg )
+bool AWSim::Engine::keyPressed( const OIS::KeyEvent &arg )
 {
     CEGUI::GUIContext& context = CEGUI::System::getSingleton().getDefaultGUIContext();
     context.injectKeyDown((CEGUI::Key::Scan)arg.key);
     context.injectChar((CEGUI::Key::Scan)arg.text);
-    std::cout << "key pressed\n";
     return true;
 }
 //-------------------------------------------------------------------------------------
-bool Engine::keyReleased( const OIS::KeyEvent &arg )
+bool AWSim::Engine::keyReleased( const OIS::KeyEvent &arg )
 {
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp((CEGUI::Key::Scan)arg.key);
-    std::cout << "key released\n";
     return true;
 }
 //-------------------------------------------------------------------------------------
-bool Engine::mouseMoved( const OIS::MouseEvent &arg )
+bool AWSim::Engine::mouseMoved( const OIS::MouseEvent &arg )
 {
     CEGUI::GUIContext &gui_context = CEGUI::System::getSingleton().getDefaultGUIContext();
-    gui_context.injectMouseMove(arg.state.X.rel, arg.state.Y.rel);
-
-    std::cout << "moving mouse " << arg.state.X.rel << "," << arg.state.Y.rel << "\n";
+    //gui_context.injectMouseMove(arg.state.X.rel, arg.state.Y.rel);
+    gui_context.injectMousePosition(arg.state.X.abs, arg.state.Y.abs);
 
     // Scroll wheel.
     if (arg.state.Z.rel)
@@ -269,21 +272,19 @@ bool Engine::mouseMoved( const OIS::MouseEvent &arg )
     return true;
 }
 //-------------------------------------------------------------------------------------
-bool Engine::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
+bool AWSim::Engine::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(convertButton(id));
-    std::cout << "mouse pressed\n";
     return true;
 }
 //-------------------------------------------------------------------------------------
-bool Engine::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
+bool AWSim::Engine::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(convertButton(id));
-    std::cout << "mouse released\n";
     return true;
 }
 //-------------------------------------------------------------------------------------
-bool Engine::quit(const CEGUI::EventArgs &e)
+bool AWSim::Engine::quit(const CEGUI::EventArgs &e)
 {
     mShutdown = true;
     return true;
@@ -307,7 +308,7 @@ extern "C" {
 #endif
     {
         // Create application object
-        Engine app;
+        AWSim::Engine app;
 
         try {
             app.go();

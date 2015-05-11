@@ -89,11 +89,13 @@ if (NOT OGRE_BUILD_PLATFORM_IPHONE)
 endif()
  
 set(HDRS
-        ./engine.h
+        ./src/engine.h
+        ./src/awgraphics/camera.h
 )
  
 set(SRCS
-        ./engine.cpp
+        ./src/engine.cpp
+        ./src/awgraphics/camera.cpp
 )
  
 include_directories( ${OIS_INCLUDE_DIRS}
