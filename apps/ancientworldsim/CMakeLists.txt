@@ -91,11 +91,15 @@ endif()
 set(HDRS
         ./src/engine.h
         ./src/awgraphics/camera.h
+        ./src/awinput/inputhandler.h
+        ./src/awmechanics/action.h
 )
  
 set(SRCS
         ./src/engine.cpp
         ./src/awgraphics/camera.cpp
+        ./src/awinput/inputhandler.cpp
+        ./src/awmechanics/action.cpp
 )
  
 include_directories( ${OIS_INCLUDE_DIRS}

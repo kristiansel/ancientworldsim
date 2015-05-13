@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.4.0, 2015-05-10T21:40:53. -->
+<!-- Written by QtCreator 3.4.0, 2015-05-12T07:19:53. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -69,7 +69,7 @@
     <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/home/kristian/dev/git/ancientworldsim/apps/ancientworldsim/build</value>
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
-      <value type="QString" key="CMakeProjectManager.MakeStep.AdditionalArguments"></value>
+      <value type="QString" key="CMakeProjectManager.MakeStep.AdditionalArguments">-j4</value>
       <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets"/>
       <value type="bool" key="CMakeProjectManager.MakeStep.Clean">false</value>
       <value type="QString" key="CMakeProjectManager.MakeStep.MakeCommand"></value>

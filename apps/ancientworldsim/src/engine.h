@@ -23,9 +23,10 @@ Main engine class
 #include <OISMouse.h>
 
 #include <CEGUI/CEGUI.h>
-#include <CEGUI/RendererModules/Ogre/Renderer.h> //from 0.8 it's just Ogre/Renderer.h
+#include <CEGUI/RendererModules/Ogre/Renderer.h>
 
 #include "awgraphics/camera.h"
+#include "awinput/inputhandler.h"
 
 //---------------------------------------------------------------------------
 namespace AWSim {
@@ -68,6 +69,7 @@ namespace AWSim {
 
         AWGraphics::Camera* mCamera;
         Ogre::SceneNode* mPlayerNode;
+        AWInput::InputHandler mInputHandler; // why would anyone use a pointer here?
 
 
         // OIS members

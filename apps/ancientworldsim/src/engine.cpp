@@ -128,20 +128,6 @@ bool AWSim::Engine::go()
 
     quit->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&AWSim::Engine::quit, this));
 
-    // Initialize and add an entity
-    Ogre::Entity* ogreEntity = mSceneMgr->createEntity("ogrehead.mesh");
-
-    Ogre::SceneNode* ogreNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
-    ogreNode->attachObject(ogreEntity);
-
-    mPlayerNode = ogreNode;
-
-    // Initialize and add a light
-    mSceneMgr->setAmbientLight(Ogre::ColourValue(.5, .5, .5));
-
-    Ogre::Light* light = mSceneMgr->createLight("MainLight");
-    light->setPosition(20, 80, 50);
-
     // Initialize Open Input System
     Ogre::LogManager::getSingletonPtr()->logMessage("*** Initializing OIS ***");
     OIS::ParamList pl;
@@ -159,6 +145,23 @@ bool AWSim::Engine::go()
 
     mMouse->setEventCallback(this);
     mKeyboard->setEventCallback(this);
+
+    // Add an entity to the scene
+    Ogre::Entity* ogreEntity = mSceneMgr->createEntity("ogrehead.mesh");
+
+    Ogre::SceneNode* ogreNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
+    ogreNode->attachObject(ogreEntity);
+
+    mPlayerNode = ogreNode;
+
+    // Initialize and add a light
+    mSceneMgr->setAmbientLight(Ogre::ColourValue(.5, .5, .5));
+
+    Ogre::Light* light = mSceneMgr->createLight("MainLight");
+    light->setPosition(20, 80, 50);
+
+    // connect the inputhandler to the node:
+    mInputHandler.attachToNode(mPlayerNode);
 
     //Set initial mouse clipping size
     windowResized(mWindow);
@@ -251,12 +254,16 @@ bool AWSim::Engine::keyPressed( const OIS::KeyEvent &arg )
     CEGUI::GUIContext& context = CEGUI::System::getSingleton().getDefaultGUIContext();
     context.injectKeyDown((CEGUI::Key::Scan)arg.key);
     context.injectChar((CEGUI::Key::Scan)arg.text);
+
+    mInputHandler.keyPressed(arg);
     return true;
 }
 //-------------------------------------------------------------------------------------
 bool AWSim::Engine::keyReleased( const OIS::KeyEvent &arg )
 {
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp((CEGUI::Key::Scan)arg.key);
+
+    mInputHandler.keyReleased(arg);
     return true;
 }
 //-------------------------------------------------------------------------------------
@@ -269,24 +276,31 @@ bool AWSim::Engine::mouseMoved( const OIS::MouseEvent &arg )
     // Scroll wheel.
     if (arg.state.Z.rel)
         gui_context.injectMouseWheelChange(arg.state.Z.rel / 120.0f);
+
+    mInputHandler.mouseMoved(arg);
     return true;
 }
 //-------------------------------------------------------------------------------------
 bool AWSim::Engine::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(convertButton(id));
+
+    mInputHandler.mousePressed(arg, id);
     return true;
 }
 //-------------------------------------------------------------------------------------
 bool AWSim::Engine::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(convertButton(id));
+
+    mInputHandler.mouseReleased(arg, id);
     return true;
 }
 //-------------------------------------------------------------------------------------
 bool AWSim::Engine::quit(const CEGUI::EventArgs &e)
 {
     mShutdown = true;
+
     return true;
 }
 
