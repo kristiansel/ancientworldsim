@@ -34,12 +34,40 @@ namespace AWInput
     QuickAction8    = ,
     QuickAction9    = ,*/
 
-    //static Actions KeyBindings;
+    enum ActionKey : int { // assume these go from 0 to ActionsCount-1
+        Forward,
+        Backward,
+        Right,
+        Left,
 
-    //static ActionStruct KeyIsDown;
+        Run,
+        ToggleRun,
+        Crouch,
+        ToggleCrouch,
+        Jump,
 
-    typedef int ActionKeybindMap[AWMech::Action::ActionsCount];
-    //using InputAction = AWMech::Action::ActionType;
+        Attack,
+        Block,
+        Dodge,
+
+        Inventory,
+        MainMenu,
+        Character,
+        Map,
+
+        QuickAction1,
+        QuickAction2,
+        QuickAction3,
+        QuickAction4,
+        QuickAction5,
+        QuickAction6,
+        QuickAction7,
+        QuickAction8,
+        QuickAction9,
+
+        KeyCount // Number of available actions keys
+    };
+
 
     class InputHandler
     {
@@ -47,6 +75,8 @@ namespace AWInput
         InputHandler();
 
         bool attachToNode(Ogre::SceneNode *playerNode);
+
+        void handleBufferedInput(const float &timestep);
 
         // Handle key input
         void keyPressed( const OIS::KeyEvent &arg );
@@ -56,20 +86,17 @@ namespace AWInput
         void mouseMoved( const OIS::MouseEvent &arg );
         void mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
         void mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
+    protected:
+        void useDefaultKeyBindings();
 
     private:
         Ogre::SceneNode *mPlayerNode;
 
-        ActionKeybindMap mKeyBindings;
+        std::map<int, int> mKeyBindings; // Key: Key Code, Value: Action
+        bool mIsActionKeyDown[ActionKey::KeyCount];
 
-
-        struct KeyIsDown
-        {
-            bool KeyForward;
-            bool KeyBackward;
-            bool KeyRight;
-            bool KeyLeft;
-        } mKeyIsDown;
+        // move this to creature or something:
+        static constexpr float speed = 100.f; // 100 something per second
     };
 }
 

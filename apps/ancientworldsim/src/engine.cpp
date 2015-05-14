@@ -27,7 +27,7 @@ AWSim::Engine::Engine()
       mInputManager(nullptr),
       mMouse(nullptr),
       mKeyboard(nullptr),
-      mRenderer(nullptr),
+      mGuiRenderer(nullptr),
       mShutdown(false)
 
 {
@@ -86,26 +86,11 @@ bool AWSim::Engine::go()
     // Initialize and add a scene manager
     mSceneMgr = mRoot->createSceneManager(Ogre::ST_GENERIC);
 
-//    // Initialize and add a camera
-//    mCamera = mSceneMgr->createCamera("MainCam");
-
-//    mCamera->setPosition(0, 0, 80);
-//    mCamera->lookAt(0, 0, -300);
-//    mCamera->setNearClipDistance(5);
-
-//    // Initialize and add a viewport
-//    Ogre::Viewport* vp = mWindow->addViewport(mCamera);
-
-//    vp->setBackgroundColour(Ogre::ColourValue(0,0,0));
-
-//    mCamera->setAspectRatio(
-//        Ogre::Real(vp->getActualWidth()) /
-//        Ogre::Real(vp->getActualHeight()));
-
+    // Camera
     mCamera = AWGraphics::createCamera(mSceneMgr, mWindow);
 
     // Initialize CEGUI
-    mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
+    mGuiRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
 
     CEGUI::ImageManager::setImagesetDefaultResourceGroup("Imagesets");
     CEGUI::Font::setDefaultResourceGroup("Fonts");
@@ -149,10 +134,14 @@ bool AWSim::Engine::go()
     // Add an entity to the scene
     Ogre::Entity* ogreEntity = mSceneMgr->createEntity("ogrehead.mesh");
 
-    Ogre::SceneNode* ogreNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
+    Ogre::SceneNode* parentNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
+    Ogre::SceneNode* ogreNode = parentNode->createChildSceneNode();
     ogreNode->attachObject(ogreEntity);
+    ogreNode->rotate(Ogre::Vector3(0.0, 1.0, 0.0), Ogre::Radian(Ogre::Degree(180)));
 
-    mPlayerNode = ogreNode;
+    mPlayerNode = parentNode;
+
+    mCamera->attachChaseCam(mPlayerNode);
 
     // Initialize and add a light
     mSceneMgr->setAmbientLight(Ogre::ColourValue(.5, .5, .5));
@@ -171,6 +160,9 @@ bool AWSim::Engine::go()
 
     //Register this object as a Frame Listener
     mRoot->addFrameListener(this);
+
+    // reset the timer
+    mTimer.reset();
 
     //Start rendering
     mRoot->startRendering();
@@ -222,6 +214,14 @@ bool AWSim::Engine::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
     if(mShutdown)
         return false;
+
+    unsigned long timestep_microsec = mTimer.getMicroseconds();
+    mTimer.reset();
+
+    float timestep_seconds = (float)(timestep_microsec)*1e-6; // does this cause a Load-Hit-Store?
+
+    //handle buffered input (i.e. "if key is down" type input)
+    mInputHandler.handleBufferedInput(timestep_seconds);
 
     //Need to inject timestamps to CEGUI System.
     CEGUI::System::getSingleton().injectTimePulse(evt.timeSinceLastFrame);

@@ -16,6 +16,7 @@ Main engine class
 #include <OgreSceneManager.h>
 #include <OgreRenderWindow.h>
 #include <OgreWindowEventUtilities.h>
+#include <OgreTimer.h>
 
 #include <OISEvents.h>
 #include <OISInputManager.h>
@@ -47,8 +48,6 @@ namespace AWSim {
         // Ogre::FrameListener
         virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 
-        // recompile please
-
         // OIS::KeyListener
         virtual bool keyPressed( const OIS::KeyEvent &arg );
         virtual bool keyReleased( const OIS::KeyEvent &arg );
@@ -66,6 +65,7 @@ namespace AWSim {
         Ogre::String mPluginsCfg;
         Ogre::RenderWindow* mWindow;
         Ogre::SceneManager* mSceneMgr;
+        Ogre::Timer mTimer;
 
         AWGraphics::Camera* mCamera;
         Ogre::SceneNode* mPlayerNode;
@@ -78,7 +78,7 @@ namespace AWSim {
         OIS::Keyboard* mKeyboard;
 
         // CEGUI members
-        CEGUI::OgreRenderer* mRenderer;
+        CEGUI::OgreRenderer* mGuiRenderer;
         bool mShutdown;
     };
 }

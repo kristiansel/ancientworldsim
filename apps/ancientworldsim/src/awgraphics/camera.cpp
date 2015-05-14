@@ -13,7 +13,7 @@ AWGraphics::Camera::Camera(Ogre::SceneManager *sceneMgr, Ogre::RenderWindow *win
     // Initialize and add a camera
     mCamera = mSceneMgr->createCamera("MainCam");
 
-    mCamera->setPosition(0, 0, 0);
+    mCamera->setPosition(0, 0, 80);
     mCamera->lookAt(0, 0, -300);
     mCamera->setNearClipDistance(5);
 
@@ -31,7 +31,7 @@ AWGraphics::Camera::Camera(Ogre::SceneManager *sceneMgr, Ogre::RenderWindow *win
      mCameraNode->translate(0, 0, 80);
 
      // ... and attach the Ogre camera to the camera node
-     mCameraNode->attachObject (mCamera);
+     //mCameraNode->attachObject (mCamera);
 
      // Default tightness
      mTightness = 0.01f;

@@ -36,29 +36,37 @@
 }*/
 
 AWInput::InputHandler::InputHandler()
-    : mPlayerNode(nullptr),
-      mKeyIsDown({
-                    false,  // KeyForward
-                    false,  // KeyBackward
-                    false,  // KeyRight
-                    false   // KeyLeft
-                 })
+    : mPlayerNode(nullptr)
 {
-    mKeyBindings[AWMech::Action::Forward]         = OIS::KeyCode::KC_W;
-    mKeyBindings[AWMech::Action::Backward]        = OIS::KeyCode::KC_S;
-    mKeyBindings[AWMech::Action::Right]           = OIS::KeyCode::KC_D;
-    mKeyBindings[AWMech::Action::Left]            = OIS::KeyCode::KC_A;
 
-    mKeyBindings[AWMech::Action::Run]             = OIS::KeyCode::KC_LSHIFT;
-    mKeyBindings[AWMech::Action::ToggleRun]       = OIS::KeyCode::KC_CAPITAL;
-    mKeyBindings[AWMech::Action::Crouch]          = OIS::KeyCode::KC_LCONTROL;
-    mKeyBindings[AWMech::Action::ToggleCrouch]    = OIS::KeyCode::KC_C;
-    mKeyBindings[AWMech::Action::Jump]            = OIS::KeyCode::KC_SPACE;
+    for (int i = 0; i<ActionKey::KeyCount; i++)
+    {
+        mIsActionKeyDown[i] = false;
+    }
 
-    mKeyBindings[AWMech::Action::Attack]          = AWInput::LMB_CODE;
-    mKeyBindings[AWMech::Action::Block]           = AWInput::RMB_CODE;
-    mKeyBindings[AWMech::Action::Dodge]           = OIS::KeyCode::KC_LMENU ; // left alt
+    useDefaultKeyBindings();
 }
+
+void AWInput::InputHandler::useDefaultKeyBindings()
+{
+    mKeyBindings[OIS::KeyCode::KC_W]            = ActionKey::Forward;
+    mKeyBindings[OIS::KeyCode::KC_S]            = ActionKey::Backward;
+    mKeyBindings[OIS::KeyCode::KC_D]            = ActionKey::Right;
+    mKeyBindings[OIS::KeyCode::KC_A]            = ActionKey::Left;
+
+    mKeyBindings[OIS::KeyCode::KC_LSHIFT]       = ActionKey::Run;
+    mKeyBindings[OIS::KeyCode::KC_CAPITAL]      = ActionKey::ToggleRun;
+    mKeyBindings[OIS::KeyCode::KC_LCONTROL]     = ActionKey::Crouch;
+    mKeyBindings[OIS::KeyCode::KC_C]            = ActionKey::ToggleCrouch;
+    mKeyBindings[OIS::KeyCode::KC_SPACE]        = ActionKey::Jump;
+
+    mKeyBindings[AWInput::LMB_CODE]             = ActionKey::Attack;
+    mKeyBindings[AWInput::RMB_CODE]             = ActionKey::Block;
+    mKeyBindings[OIS::KeyCode::KC_LMENU]        = ActionKey::Dodge;
+
+    // add additional actions here
+}
+
 //-------------------------------------------------------------------------------------
 bool AWInput::InputHandler::attachToNode(Ogre::SceneNode *playerNode)
 {
@@ -75,7 +83,19 @@ void AWInput::InputHandler::keyPressed( const OIS::KeyEvent &arg )
 {
     OIS::KeyCode keycode = arg.key;
 
-    switch (keycode)
+    auto findkey_it = mKeyBindings.find(keycode);
+    if(findkey_it != mKeyBindings.end())
+    {
+            int action_key = findkey_it->second;
+            mIsActionKeyDown[action_key] = true;
+            // handle specific action, switch |here| or in a new function?
+            /*switch (action_key)
+            {
+            }*/
+
+    }
+
+    /*switch (keycode)
     {
     //case mKeyBindings[AWMech::Action::Forward]:
     case OIS::KeyCode::KC_W:
@@ -90,27 +110,20 @@ void AWInput::InputHandler::keyPressed( const OIS::KeyEvent &arg )
     case OIS::KeyCode::KC_A:
         mKeyIsDown.KeyLeft= true;
         break;
-    }
+    }*/
 }
 //-------------------------------------------------------------------------------------
 void AWInput::InputHandler::keyReleased( const OIS::KeyEvent &arg )
 {
     OIS::KeyCode keycode = arg.key;
 
-    switch (keycode)
+    auto findkey_it = mKeyBindings.find(keycode);
+    if(findkey_it != mKeyBindings.end())
     {
-    case OIS::KeyCode::KC_W:
-        mKeyIsDown.KeyForward = false;
-        break;
-    case OIS::KeyCode::KC_S:
-        mKeyIsDown.KeyBackward = false;
-        break;
-    case OIS::KeyCode::KC_D:
-        mKeyIsDown.KeyRight = false;
-        break;
-    case OIS::KeyCode::KC_A:
-        mKeyIsDown.KeyLeft= false;
-        break;
+            int action_key = findkey_it->second;
+            mIsActionKeyDown[action_key] = false;
+            // handle specific action, switch |here| or in a new function?
+
     }
 }
 //-------------------------------------------------------------------------------------
@@ -127,4 +140,25 @@ void AWInput::InputHandler::mousePressed( const OIS::MouseEvent &arg, OIS::Mouse
 void AWInput::InputHandler::mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id )
 {
 
+}
+
+void AWInput::InputHandler::handleBufferedInput(const float &timestep)
+{
+    // handle buffered input
+    if (mIsActionKeyDown[ActionKey::Forward])
+    {
+        mPlayerNode->translate(0.0, 0.0, -timestep*speed, Ogre::SceneNode::TransformSpace::TS_LOCAL);
+    }
+    if (mIsActionKeyDown[ActionKey::Backward])
+    {
+        mPlayerNode->translate(0.0, 0.0, timestep*speed, Ogre::SceneNode::TransformSpace::TS_LOCAL);
+    }
+    if (mIsActionKeyDown[ActionKey::Right])
+    {
+        mPlayerNode->translate(timestep*speed, 0.0, 0.0, Ogre::SceneNode::TransformSpace::TS_LOCAL);
+    }
+    if (mIsActionKeyDown[ActionKey::Left])
+    {
+        mPlayerNode->translate(-timestep*speed, 0.0, 0.0, Ogre::SceneNode::TransformSpace::TS_LOCAL);
+    }
 }
