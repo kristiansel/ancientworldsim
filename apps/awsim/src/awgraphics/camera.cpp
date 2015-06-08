@@ -31,7 +31,7 @@ AWGraphics::Camera::Camera(Ogre::SceneManager *sceneMgr, Ogre::RenderWindow *win
      mCameraNode->translate(0, 0, 80);
 
      // ... and attach the Ogre camera to the camera node
-     //mCameraNode->attachObject (mCamera);
+     mCameraNode->attachObject (mCamera);
 
      // Default tightness
      mTightness = 0.01f;
@@ -48,7 +48,12 @@ AWGraphics::Camera::~Camera()
 void AWGraphics::Camera::attachChaseCam(Ogre::SceneNode *targetNode)
 {
     mTargetNode = targetNode;
-    mCameraNode->setAutoTracking (true, mTargetNode); // The camera will always look at the camera target
-    mCameraNode->setFixedYawAxis (true); // Needed because of auto tracking
+    //mCameraNode->setAutoTracking (true, mTargetNode); // The camera will always look at the camera target
+    //mCameraNode->setFixedYawAxis (true); // Needed because of auto tracking
+}
+
+Ogre::SceneNode* AWGraphics::Camera::getCameraNode()
+{
+    return mCameraNode;
 }
 

@@ -57,15 +57,19 @@ Ogre::SceneNode* AWGraphics::SceneDirector::createBox(float x, float y, float z)
 
 Ogre::SceneNode* AWGraphics::SceneDirector::createPlane(float x, float y, float z)
 {
+    Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, 0);
+
     // Initialize a ground entity for later use
     Ogre::MeshManager::getSingleton().createPlane(
         "ground",
         Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-        Ogre::Plane(Ogre::Vector3::UNIT_Y, 0),
+        plane,
         1500, 1500, 20, 20,
         true,
         1, 5, 5,
         Ogre::Vector3::UNIT_Z);
+
+    //Ogre::MeshManager::getSingleton().createPlane()
 
     Ogre::Entity* groundEntity = mSceneMgr->createEntity("ground");
     groundEntity->setMaterialName("Rockwall");
@@ -74,6 +78,7 @@ Ogre::SceneNode* AWGraphics::SceneDirector::createPlane(float x, float y, float 
     Ogre::SceneNode* ogreNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
     ogreNode->attachObject(groundEntity);
     ogreNode->setPosition(x, y, z);
+    ogreNode->setOrientation(Ogre::Quaternion::IDENTITY); // hope this is  a good reference
 
     return ogreNode;
 }

@@ -11,6 +11,9 @@
 
 #include "../awmechanics/action.h"
 
+#include "../awutility/logger.h"
+
+
 namespace AWInput
 {
     enum MouseCodes : int {
@@ -73,8 +76,10 @@ namespace AWInput
     {
     public:
         InputHandler();
+        virtual ~InputHandler();
 
-        bool attachToNode(Ogre::SceneNode *playerNode);
+        bool attachToPlayerNode(Ogre::SceneNode *playerNode);
+        bool attachToCameraNode(Ogre::SceneNode *camerNode);
 
         void handleBufferedInput(const float &timestep);
 
@@ -91,12 +96,24 @@ namespace AWInput
 
     private:
         Ogre::SceneNode *mPlayerNode;
+        Ogre::SceneNode *mCameraNode;
 
         std::map<int, int> mKeyBindings; // Key: Key Code, Value: Action
         bool mIsActionKeyDown[ActionKey::KeyCount];
 
         // move this to creature or something:
-        static constexpr float speed = 100.f; // 100 something per second
+        static constexpr float speed = 1000.f; // 100 something per second
+
+        struct IsMouseButtonDown
+        {
+            bool lmb;
+            bool rmb;
+            bool mmb;
+        } mIsMouseButtonDown;
+
+        static constexpr float MOUSE_CAMERA_SPEED = 0.0062831853; // In radians per pixel. The number corresponds to 2pi rad / 1000 px
+
+        AWUtil::Logger mLogger;
     };
 }
 

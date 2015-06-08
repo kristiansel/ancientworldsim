@@ -2,6 +2,7 @@
 
 namespace AWSystem
 {
+    //sLogger("awgameobjectmanager.log");
 
     GameObjectManager::GameObjectManager(AWGraphics::SceneDirector* sceneDirector,
                                          AWPhysics::PhysicsManager* physicsManager)
@@ -54,7 +55,12 @@ namespace AWSystem
 
     inline void SubSysShared::PosRot::updateFromPhysics(PosRot &pos_rot)
     {
-        btTransform world_transform = pos_rot.rigid_body->getWorldTransform();
+
+        sLogger << "updated gameObject from physics";
+
+        btTransform world_transform;
+        pos_rot.rigid_body->getMotionState()->getWorldTransform(world_transform);
+
         btQuaternion rot = world_transform.getRotation();
         btVector3 pos = world_transform.getOrigin();
 
@@ -66,13 +72,29 @@ namespace AWSystem
         pos_rot.rot.x = rot.x();
         pos_rot.rot.y = rot.y();
         pos_rot.rot.z = rot.z();
+
+
+    }
+
+    void GameObjectManager::updatePhysics() // later switch this to physics thread and lock individual items
+    {
+        sLogger << "updating gameObject from physics";
+
+        for (auto &pos_rot : mObjectPosRots)
+        {
+            SubSysShared::PosRot::updateFromPhysics(pos_rot); // should be inlined
+
+        }
     }
 
     void GameObjectManager::updateGraphics()
     {
+        sLogger << "updating graphics from gameObject";
+
         for (auto &pos_rot : mObjectPosRots)
         {
             SubSysShared::PosRot::updateToGraphics(pos_rot); // should be inlined
+
         }
     }
 
@@ -82,5 +104,7 @@ namespace AWSystem
         pos_rot.scene_node->setPosition(PHYS2GRAPH_LENUNIT*pos_rot.pos.x,
                                         PHYS2GRAPH_LENUNIT*pos_rot.pos.y,
                                         PHYS2GRAPH_LENUNIT*pos_rot.pos.z);
+
+
     }
 }

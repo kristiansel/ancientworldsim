@@ -4,6 +4,7 @@
 #include "gameobject.h"
 #include "../awphysics/physicsmanager.h"
 #include "../awgraphics/scenedirector.h"
+#include "../awutility/logger.h"
 
 namespace AWSystem
 {
@@ -30,7 +31,7 @@ namespace AWSystem
 
     }
 
-    static constexpr float PHYS2GRAPH_LENUNIT = 100.f;
+    static constexpr float PHYS2GRAPH_LENUNIT = 50.f;
     static constexpr float GRAPH2PHYS_LENUNIT = 1.f/PHYS2GRAPH_LENUNIT;
 
     class GameObjectManager
@@ -42,6 +43,7 @@ namespace AWSystem
         GameObject* createPlane(float x, float y, float z);
 
         void updateGraphics();
+        void updatePhysics();
     private:
         typedef std::list<GameObject> GameObjectVector; // perhaps change allocator or something on this later?
         GameObjectVector mGameObjects;
@@ -50,8 +52,10 @@ namespace AWSystem
 
         AWGraphics::SceneDirector* mSceneDirector;
         AWPhysics::PhysicsManager* mPhysicsManager;
-    };
 
+
+    };
+    static AWUtil::Logger sLogger("awgameobjectmanager.log");
 }
 
 #endif // AWGAMEOBJECTMANAGER_H

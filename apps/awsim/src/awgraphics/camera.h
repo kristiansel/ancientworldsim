@@ -14,12 +14,14 @@ namespace AWGraphics
         ~Camera();
 
         void attachChaseCam(Ogre::SceneNode *targetNode);
+
+        Ogre::SceneNode* getCameraNode();
     private:
         Ogre::Camera* mCamera; // gets deleted by SceneManger
         Ogre::String mName;
 
-        Ogre::SceneNode *mTargetNode; // The camera target
-        Ogre::SceneNode *mCameraNode; // The camera itself
+        Ogre::SceneNode* mTargetNode; // The camera target
+        Ogre::SceneNode* mCameraNode; // The camera itself
 
         Ogre::SceneManager *mSceneMgr;
         Ogre::Real mTightness;

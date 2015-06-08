@@ -31,7 +31,8 @@ AWSim::Engine::Engine()
       mShutdown(false),
       mSceneDirector(nullptr),
       mPhysicsManager(nullptr),
-      mGameObjectManager(nullptr)
+      mGameObjectManager(nullptr),
+      mLogger("awengine.log")
 {
 }
 //-------------------------------------------------------------------------------------
@@ -41,7 +42,7 @@ AWSim::Engine::~Engine()
     Ogre::WindowEventUtilities::removeWindowEventListener(mWindow, this);
     windowClosed(mWindow);
 
-    mPhysicsManager->destroyPhysicsWorld();
+    //mPhysicsManager->destroyPhysicsWorld();
     delete mPhysicsManager;
 
     delete mSceneDirector;
@@ -113,8 +114,8 @@ bool AWSim::Engine::go()
     CEGUI::WindowManager::setDefaultResourceGroup("Layouts");
 
     CEGUI::SchemeManager::getSingleton().createFromFile("TaharezLook.scheme");
-    CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("TaharezLook/MouseArrow");
-
+    //CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("TaharezLook/MouseArrow");
+    //CEGUI::MouseCursor::show();
 
     CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
     CEGUI::Window *sheet = wmgr.createWindow("DefaultWindow", "CEGUIDemo/Sheet");
@@ -137,6 +138,19 @@ bool AWSim::Engine::go()
     windowHndStr << windowHnd;
     pl.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
 
+    // for showing the mouse?
+#if defined OIS_WIN32_PLATFORM
+    pl.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_FOREGROUND" )));
+    pl.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_NONEXCLUSIVE")));
+    pl.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_FOREGROUND")));
+    pl.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_NONEXCLUSIVE")));
+#elif defined OIS_LINUX_PLATFORM
+    pl.insert(std::make_pair(std::string("x11_mouse_grab"), std::string("false")));
+    pl.insert(std::make_pair(std::string("x11_mouse_hide"), std::string("false")));
+    pl.insert(std::make_pair(std::string("x11_keyboard_grab"), std::string("false")));
+    pl.insert(std::make_pair(std::string("XAutoRepeatOn"), std::string("true")));
+#endif
+
     mInputManager = OIS::InputManager::createInputSystem( pl );
 
     mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject( OIS::OISKeyboard, true ));
@@ -152,14 +166,18 @@ bool AWSim::Engine::go()
     // Initialize game objects manager;
     mGameObjectManager = new AWSystem::GameObjectManager(mSceneDirector, mPhysicsManager);
     mGameObjectManager->createPlane(0.0, 0.0, 0.0);
-    mGameObjectManager->createBox(0.8, 0.2, 0.1);
+    mGameObjectManager->createBox(2, 2, 0.1);
 
     // Create scene
     mSceneDirector->createPlayer();
     mPlayerNode = mSceneDirector->getPlayerNode();
 
     // connect the inputhandler to the node:
-    mInputHandler.attachToNode(mPlayerNode);
+    mInputHandler.attachToPlayerNode(mPlayerNode);
+    mInputHandler.attachToCameraNode(mCamera->getCameraNode());
+
+    // connect camera and player (?)
+    mCamera->attachChaseCam(mPlayerNode);
 
     //Set initial mouse clipping size
     windowResized(mWindow);
@@ -229,16 +247,22 @@ bool AWSim::Engine::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
     float timestep_seconds = (float)(timestep_microsec)*1e-6; // does this cause a Load-Hit-Store?
 
+    //mLogger.reportStringStream(std::stringstream()<<"dt = " << timestep_seconds << "s");
+
+    //std::cout << "timestep_seconds = " << timestep_seconds << "\n";
+
     //handle buffered input (i.e. "if key is down" type input)
     mInputHandler.handleBufferedInput(timestep_seconds);
 
     //step physics
     mPhysicsManager->updatePhysics(timestep_seconds);
+    mGameObjectManager->updatePhysics();
 
     //update graphics
     mGameObjectManager->updateGraphics();
     // need to step physics, and update transforms, implement update graphics transf...
     // as well as add a static plane floor
+    // something is wrong...
 
     //Need to inject timestamps to CEGUI System.
     CEGUI::System::getSingleton().injectTimePulse(evt.timeSinceLastFrame);

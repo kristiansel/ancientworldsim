@@ -31,6 +31,7 @@ Main engine class
 #include "awinput/inputhandler.h"
 #include "awphysics/physicsmanager.h"
 #include "awsystem/gameobjectmanager.h"
+#include "awutility/logger.h"
 
 //---------------------------------------------------------------------------
 namespace AWSim {
@@ -92,6 +93,9 @@ namespace AWSim {
         // CEGUI members
         CEGUI::OgreRenderer* mGuiRenderer;
         bool mShutdown;
+
+        // Debug
+        AWUtil::Logger mLogger;
     };
 }
 

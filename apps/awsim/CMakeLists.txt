@@ -91,6 +91,7 @@ endif()
 set(HDRS
         ./src/engine.h
         ./src/awgraphics/camera.h
+        ./src/awgraphics/sdkcameraman.h
         ./src/awgraphics/scenedirector.h
         ./src/awinput/inputhandler.h
         ./src/awmechanics/action.h

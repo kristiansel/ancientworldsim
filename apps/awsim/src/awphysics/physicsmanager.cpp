@@ -58,10 +58,12 @@ void AWPhysics::PhysicsManager::destroyPhysicsWorld()
         {
             btCollisionObject* obj = m_dynamicsWorld->getCollisionObjectArray()[i];
             btRigidBody* body = btRigidBody::upcast(obj);
+
             if (body && body->getMotionState())
             {
                 delete body->getMotionState();
             }
+
             m_dynamicsWorld->removeCollisionObject(obj);
             delete obj;
         }
@@ -95,6 +97,29 @@ void AWPhysics::PhysicsManager::updatePhysics(float dt)
 {
     // implement                    timeStep, maxSubSteps,
     m_dynamicsWorld->stepSimulation(dt, 4);
+
+    //mLogger << "updating physics";
+    /*
+    for (int i = m_dynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--)
+    {
+        btCollisionObject* obj = m_dynamicsWorld->getCollisionObjectArray()[i];
+        btRigidBody* body = btRigidBody::upcast(obj);
+        if (body && body->getMotionState())
+        {
+            btTransform b_transf;
+            body->getMotionState()->getWorldTransform(b_transf);
+
+            btVector3 b_pos = b_transf.getOrigin();
+
+            //mLogger.reportStringStream(std::stringstream() <<
+             //          "RigidBody #" << i << ": " << b_pos.x() << ", " << b_pos.y() << ", " << b_pos.z()
+             //                          );
+        }
+    }
+    */
+
+    // recompile please
+
 }
 
 btRigidBody*	AWPhysics::PhysicsManager::createRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape)
@@ -135,16 +160,20 @@ btRigidBody* AWPhysics::PhysicsManager::createBox(float x, float y, float z)
                             btTransform( btTransform().getRotation(),
                                          btVector3(x, y, z) ),
                             new btBoxShape( btVector3(1.0, 1.0, 1.0) ) );
+
+    mLogger << "creating Box rigid body";
 }
 
 btRigidBody* AWPhysics::PhysicsManager::createPlane(float x, float y, float z)
 {
     return createRigidBody( 0.f, // zero mass == static object
-                            btTransform( btTransform().getRotation(),
+                            btTransform( btQuaternion::getIdentity(), // wow valgrind memory analyzer found the old bug here...
                                          btVector3(x, y, z) ),
                             //                      normal                    constant
                             new btStaticPlaneShape( btVector3(0.0, 1.0, 0.0), btScalar(0.0)));
                             // assume that the plane is placed at: (x, y, z) = scalar*normal
+
+    mLogger << "creating Plane rigid body";
 }
 
 

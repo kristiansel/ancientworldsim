@@ -2,6 +2,7 @@
 #define AWLOGGER
 
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <ctime>
 
@@ -12,11 +13,25 @@ namespace AWUtil
     public:
         Logger(const std::string &logFileName) : mLogFileName(logFileName) {}
 
+
+        void reportStringStream(std::basic_ostream<char>& ss)
+        {
+            std::ofstream log_file(mLogFileName,
+                                   std::ios_base::out | std::ios_base::app );
+
+            log_file << std::endl << getTimeStamp().rdbuf() << ": " << ss.rdbuf();
+        }
+
         void operator<<(const char *str)
         {
             std::ofstream log_file(mLogFileName,
                                    std::ios_base::out | std::ios_base::app );
 
+            log_file << std::endl << getTimeStamp().rdbuf() << ": " << str;
+        }
+    protected:
+        static std::stringstream getTimeStamp()
+        {
             std::time_t currentTime;
             struct std::tm *localTime;
 
@@ -30,10 +45,16 @@ namespace AWUtil
             int Min    = localTime->tm_min;
             int Sec    = localTime->tm_sec;
 
-            log_file << ((Hour<10) ? "0" : "") << Hour << ":" <<
+            std::stringstream stringout;
+            stringout << ((Hour<10) ? "0" : "") << Hour << ":" <<
                          ((Min<10) ? "0" : "") << Min << ":" <<
-                         ((Sec<10) ? "0" : "") << Sec << ": " << str << std::endl;
+                         ((Sec<10) ? "0" : "") << Sec;
+
+
+            return stringout;
+
         }
+
     private:
         std::string mLogFileName;
     };
