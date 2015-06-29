@@ -56,8 +56,23 @@ find_package(Bullet REQUIRED)
 if(NOT BULLET_FOUND)
         message(SEND_ERROR "Failed to find Bullet.")
 endif()
+
+# Find RakNet
+find_package(RakNet REQUIRED)
+
+if(NOT RakNet_FOUND)
+        message(SEND_ERROR "Failed to find RakNet.")
+endif()
+
+# Find OpenCL
+find_package(OpenCL REQUIRED)
+
+if(NOT OpenCL_FOUND)
+        message(SEND_ERROR "Failed to find OpenCL.")
+endif()
+
  
-# Find Boost
+# Find Boost for OGRE
 if (NOT OGRE_BUILD_PLATFORM_IPHONE)
 	if (WIN32 OR APPLE)
 		set(Boost_USE_STATIC_LIBS TRUE)
@@ -73,7 +88,7 @@ if (NOT OGRE_BUILD_PLATFORM_IPHONE)
 	endif ()
 	set(Boost_ADDITIONAL_VERSIONS "1.44" "1.44.0" "1.42" "1.42.0" "1.41.0" "1.41" "1.40.0" "1.40" "1.39.0" "1.39" "1.38.0" "1.38" "1.37.0" "1.37" )
 	# Components that need linking (NB does not include header-only components like bind)
-	set(OGRE_BOOST_COMPONENTS thread date_time)
+        set(OGRE_BOOST_COMPONENTS thread date_time program_options)
 	find_package(Boost COMPONENTS ${OGRE_BOOST_COMPONENTS} QUIET)
 	if (NOT Boost_FOUND)
 		# Try again with the other type of libs
@@ -87,7 +102,13 @@ if (NOT OGRE_BUILD_PLATFORM_IPHONE)
 	add_definitions(-DBOOST_ALL_NO_LIB)
 	set(OGRE_LIBRARIES ${OGRE_LIBRARIES} ${Boost_LIBRARIES})
 endif()
- 
+
+# find boost for general use
+find_package( Boost 1.40 COMPONENTS program_options REQUIRED )
+if(NOT Boost_FOUND)
+        message(SEND_ERROR "Failed to find Boost.")
+endif()
+
 set(HDRS
         ./src/engine.h
         ./src/awgraphics/camera.h
@@ -99,6 +120,7 @@ set(HDRS
         ./src/awutility/logger.h
         ./src/awsystem/gameobject.h
         ./src/awsystem/gameobjectmanager.h
+        ./src/awnetwork/server.h
 )
  
 set(SRCS
@@ -110,6 +132,7 @@ set(SRCS
         ./src/awphysics/physicsmanager.cpp
         ./src/awsystem/gameobject.cpp
         ./src/awsystem/gameobjectmanager.cpp
+        ./src/awnetwork/server.cpp
 )
  
 include_directories( ${OIS_INCLUDE_DIRS}
@@ -118,16 +141,18 @@ include_directories( ${OIS_INCLUDE_DIRS}
 	${OGRE_SAMPLES_INCLUDEPATH}
 	${OGRE_Overlay_INCLUDE_DIRS}
         ${BULLET_INCLUDE_DIRS}
+        ${Boost_INCLUDE_DIR}
+        ${RakNet_INCLUDES}
+        ${OpenCL_INCLUDE_DIRS}
 )
  
 add_executable(AncientWorldSim WIN32 ${HDRS} ${SRCS})
  
 set_target_properties(AncientWorldSim PROPERTIES DEBUG_POSTFIX _d)
- 
-# MESSAGE( STATUS "CEGUI_OgreRenderer_LIBRARIES:         " ${CEGUI_OgreRenderer_LIBRARIES} )
 
 message(STATUS "BULLET_INCLUDE_DIRS:         " ${BULLET_INCLUDE_DIRS})
 message(STATUS "BULLET_LIBRARIES:            " ${BULLET_LIBRARIES})
+message(STATUS "RakNet_LIBRARY:            " ${RakNet_LIBRARY})
 
 target_link_libraries(AncientWorldSim
         ${OGRE_LIBRARIES}
@@ -137,6 +162,9 @@ target_link_libraries(AncientWorldSim
         ${OGRE_Overlay_LIBRARIES}
         ${OGRE_Terrain_LIBRARIES}
         ${BULLET_LIBRARIES}
+        ${Boost_LIBRARIES}
+        ${RakNet_LIBRARY}
+        ${OpenCL_LIBRARIES}
 )
  
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist/bin)

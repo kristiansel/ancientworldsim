@@ -14,6 +14,7 @@ Filename:    engine.cpp
 
 #include <iostream>
 
+#include <boost/program_options.hpp>
 
 //-------------------------------------------------------------------------------------
 AWSim::Engine::Engine()
@@ -48,6 +49,22 @@ AWSim::Engine::~Engine()
     delete mSceneDirector;
 
     delete mRoot; // assume this cleans up entities and cameras?
+}
+//-------------------------------------------------------------------------------------
+bool AWSim::Engine::parseOptions(int argc, char *argv[], AWSim::Engine &engine)
+{
+    // Create a local alias for brevity
+    namespace po = boost::program_options;
+
+    // Declare the supported options.
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help", "produce help message")
+        ("testserver", "run as a test server")
+        ("testclient", "run as a test client")
+    ;
+
+    return true;
 }
 //-------------------------------------------------------------------------------------
 bool AWSim::Engine::go()
@@ -366,7 +383,10 @@ extern "C" {
         AWSim::Engine app;
 
         try {
-            app.go();
+            if (AWSim::Engine::parseOptions(argc, argv, app))
+            {
+                app.go();
+            }
         } catch(Ogre::Exception& e)  {
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
             MessageBox(NULL, e.getFullDescription().c_str(), "An exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL);

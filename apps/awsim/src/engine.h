@@ -43,6 +43,8 @@ namespace AWSim {
         Engine();
         virtual ~Engine();
 
+
+        static bool parseOptions(int argc, char *argv[], Engine &engine);
         bool go();
     protected:
         // Ogre::WindowEventListener
